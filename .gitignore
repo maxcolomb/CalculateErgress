@@ -37,3 +37,5 @@ src/main/resources/*/out/*
 
 # not necessary test
 src/main/resources/smallTest/*
+.project
+.settings/

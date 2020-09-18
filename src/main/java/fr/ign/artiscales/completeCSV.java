@@ -1,11 +1,11 @@
 package fr.ign.artiscales;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
 
 import org.locationtech.jts.algorithm.MinimumBoundingCircle;
 import org.locationtech.jts.algorithm.construct.MaximumInscribedCircle;
@@ -18,14 +18,30 @@ import com.opencsv.CSVWriter;
 
 public class completeCSV {
 
-	public static void main(String[] args) throws ParseException, FileNotFoundException, IOException, ParseException {
-		File inputFile = new File("/home/thema/Documents/MC/workspace/ParcelManager/src/main/resources/ParcelComparison/out/zoneDivisionWithOBBOn_Of/SimulatedParcelStats.csv");
+	public static void main(String[] args) throws IOException, ParseException {
+		File root = new File("/home/mcolomb/workspace/ParcelManager/src/main/resources/ParcelComparison/out/");
+		 completeCSVFile(new File(root, "SimulatedParcelStats.csv"));
+		 completeCSVFile(new File(root, "EvolvedParcelStats.csv"));
+		for (File f : root.listFiles())
+			if (f.isDirectory())
+				for (File ff : f.listFiles())
+					if (ff.getName().endsWith(".csv"))
+						completeCSVFile(ff);
+
+	}
+
+	public static File completeCSVFile(File inputFile) throws IOException, ParseException {
+
 		File tmpFile = new File(inputFile.getParentFile(), inputFile.getName() + "tmp");
 		CSVReader csv = new CSVReader(new FileReader(inputFile));
+		String[] firstLine = csv.readNext();
+		if (Arrays.asList(firstLine).contains("ergress")) {
+			csv.close();
+			return inputFile;
+		}
 		CSVWriter csvW = new CSVWriter(new FileWriter(tmpFile));
 
 		int iGeom = 999;
-		String[] firstLine = csv.readNext();
 		for (int i = 0; i < firstLine.length; i++) {
 			String entete = firstLine[i];
 			if (entete.equals("Geometry")) {
@@ -57,6 +73,8 @@ public class completeCSV {
 		csv.close();
 		Files.delete(inputFile.toPath());
 		Files.copy(tmpFile.toPath(), inputFile.toPath());
+		Files.delete(tmpFile.toPath());
+		return inputFile;
 	}
 
 }
